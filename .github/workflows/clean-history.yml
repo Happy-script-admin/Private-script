@@ -1,0 +1,29 @@
+name: Clean Git History
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Chạy tự động vào 00:00 mỗi ngày
+  workflow_dispatch: # Cho phép bạn bấm nút chạy thủ công bất cứ lúc nào
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1 # Chỉ lấy commit mới nhất, bỏ qua lịch sử cũ
+
+      - name: Reset và Push đè lịch sử
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@://github.com"
+          
+          # Tạo lịch sử mới tinh từ code hiện tại
+          git checkout --orphan temporary_branch
+          git add -A
+          git commit -m "Dọn dẹp lịch sử định kỳ"
+          git branch -M main
+          
+          # Đẩy đè lên GitHub để xóa lịch sử cũ
+          git push origin main --force
